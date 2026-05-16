@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Family Feud fixed layout helpers */
+.ff-fixed-bottom-nav {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: max(18px, env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+  z-index: 9999 !important;
+}
+
+.ff-fixed-wallpaper {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.ff-scroll-page {
+  min-height: 100svh;
+  padding-bottom: 110px !important;
+}
+
+.ff-story-media-contain {
+  object-fit: contain !important;
+  background: #000 !important;
+}
+
+/* FINAL fixed wallpaper + bottom nav repair */
+html,
+body {
+  min-height: 100%;
+  background: #020617;
+  overflow-x: hidden;
+}
+
+.ff-fixed-bottom-nav {
+  position: fixed !important;
+  left: 16px !important;
+  right: 16px !important;
+  bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  width: auto !important;
+  max-width: 520px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  transform: none !important;
+  z-index: 99999 !important;
+}
+
+.ff-scroll-page {
+  min-height: 100svh !important;
+  padding-bottom: 120px !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+main {
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
