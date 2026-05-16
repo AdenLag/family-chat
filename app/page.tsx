@@ -1545,6 +1545,26 @@ export default function Home() {
     return "font-black";
   }
 
+  function storyTextInputClass(style?: string) {
+    const base =
+      "min-h-[88px] w-[330px] max-w-[82vw] resize-none bg-transparent text-center text-6xl leading-tight outline-none placeholder:opacity-100 caret-current";
+    return base + " " + storyTextDisplayClass(style);
+  }
+
+  function storyTextInputStyle(item: Partial<StoryTextItem>): CSSProperties {
+    return {
+      color: item.color || "#ffffff",
+      textShadow: String(item.style || "classic") === "glow"
+        ? "0 0 10px " + (item.color || "#ffffff") + ", 0 4px 18px rgba(0,0,0,.9)"
+        : "0 4px 18px rgba(0,0,0,.9)",
+      WebkitTextStroke:
+        String(item.style || "classic") === "outline"
+          ? "1.5px rgba(0,0,0,.85)"
+          : undefined,
+      caretColor: item.color || "#ffffff",
+    } as CSSProperties;
+  }
+
   function storyTextDisplayStyle(item: Partial<StoryTextItem>): CSSProperties {
     const color = item.color || "#ffffff";
     const style = item.style || "classic";
@@ -1563,6 +1583,12 @@ export default function Home() {
   function selectStoryTextStyle(style: string) {
     if (!activeStoryTextId) return;
     updateStoryTextItem(activeStoryTextId, { style });
+  }
+
+  function applyStoryTextStyle(style: string) {
+    if (activeStoryTextId) {
+      updateStoryTextItem(activeStoryTextId, { style });
+    }
   }
 
   function startStoryStageTextGesture(event: React.PointerEvent<HTMLDivElement>) {
@@ -3450,7 +3476,7 @@ export default function Home() {
                 key={item.id}
                 data-story-text-item="true"
                 onPointerDown={(e) => dragStoryTextItem(e, item.id)}
-                className={"absolute z-30 max-w-[92%] select-none rounded-[2rem] p-4 " + (activeStoryTextId === item.id ? "/80" : "")}
+                className={"absolute z-30 max-w-[94%] select-none rounded-[2rem] p-5 " + (activeStoryTextId === item.id ? "/80" : "")}
                 style={storyTextItemStyle(item)}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -3648,7 +3674,7 @@ export default function Home() {
         <div className="fixed right-6 top-6 text-6xl">🇺🇸</div>
 
         <div className={`w-full max-w-md rounded-[2rem] p-6 ${card()}`}>
-          <h1 className="mb-1 bg-gradient-to-r from-yellow-300 via-white to-yellow-500 bg-clip-text text-center text-5xl font-black italic tracking-tight text-transparent">
+          <h1 className="mb-1 bg-gradient-to-r from-yellow-300 via-white to-yellow-500 bg-clip-text text-center text-6xl font-black italic tracking-tight text-transparent">
             Family Feud
           </h1>
           <p className="mb-6 text-center text-gray-400">
@@ -3737,7 +3763,7 @@ export default function Home() {
 
           <div className="grid gap-5 md:grid-cols-2">
             <div className={`rounded-[2rem] p-5 ${card()}`}>
-              <div className="mb-4 text-5xl">🦅</div>
+              <div className="mb-4 text-6xl">🦅</div>
               <h2 className="mb-2 text-3xl font-black">Create Family</h2>
               <p className="mb-5 text-white/55">
                 Start a new private Family Feud. You become the owner and admins
@@ -3759,7 +3785,7 @@ export default function Home() {
             </div>
 
             <div className={`rounded-[2rem] p-5 ${card()}`}>
-              <div className="mb-4 text-5xl">🔐</div>
+              <div className="mb-4 text-6xl">🔐</div>
               <h2 className="mb-2 text-3xl font-black">Join Family</h2>
               <p className="mb-5 text-white/55">
                 Enter the code from a family owner or family admin.
@@ -3816,13 +3842,13 @@ export default function Home() {
                   className="h-12 w-12 shrink-0 object-contain drop-shadow-2xl"
                 />
               ) : (
-                <div className="shrink-0 text-5xl drop-shadow-2xl">
+                <div className="shrink-0 text-6xl drop-shadow-2xl">
                   {APP_ICON}
                 </div>
               )}
               <div className="min-w-0 flex-1">
                 <h1
-                  className={`truncate text-4xl tracking-tight sm:text-5xl ${profile?.title_font || settingsTitleFont || "font-black"}`}
+                  className={`truncate text-4xl tracking-tight sm:text-6xl ${profile?.title_font || settingsTitleFont || "font-black"}`}
                   style={appTitleStyle()}
                 >
                   {currentFamily?.name || "Family Feud"}
@@ -4364,7 +4390,7 @@ export default function Home() {
                   )}
                   {readStoryTextItems(activeStory).map((item) => (
                     <div key={item.id} className="pointer-events-none absolute z-20 px-5" style={storyTextItemStyle(item)}>
-                      <div className={"max-w-[300px] break-words bg-transparent px-2 py-1 text-5xl " + storyTextDisplayClass(item.style)} style={storyTextDisplayStyle(item)}>
+                      <div className={"max-w-[300px] break-words bg-transparent px-2 py-1 text-6xl " + storyTextDisplayClass(item.style)} style={storyTextDisplayStyle(item)}>
                         {item.text}
                       </div>
                     </div>
@@ -4590,7 +4616,7 @@ export default function Home() {
               >
                 ← Back
               </button>
-              <h1 className="mb-6 text-5xl font-black">Settings</h1>
+              <h1 className="mb-6 text-6xl font-black">Settings</h1>
 
               <div className="mb-5 rounded-[2rem] border border-white/10 bg-black/55 p-5 backdrop-blur-xl">
                 <div className="flex items-center gap-4">
@@ -5215,7 +5241,7 @@ export default function Home() {
               >
                 ← Back
               </button>
-              <h1 className="mb-6 text-5xl font-black">Chat Settings</h1>
+              <h1 className="mb-6 text-6xl font-black">Chat Settings</h1>
               <div className={`mb-5 rounded-[2rem] p-5 ${card()}`}>
                 <h2 className="text-3xl font-black">
                   {isDirect
