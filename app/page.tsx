@@ -470,6 +470,10 @@ export default function Home() {
     name: string;
     type: string;
   } | null>(null);
+  const [fullscreenMedia, setFullscreenMedia] = useState<{
+    items: { url: string; name: string; type: string }[];
+    index: number;
+  } | null>(null);
   const [galleryItems, setGalleryItems] = useState<
     { url: string; name: string; type: string }[] | null
   >(null);
@@ -1005,6 +1009,33 @@ export default function Home() {
     return `${extra} transition duration-150 active:scale-[.97] active:brightness-125 active:blur-[.2px]`;
   }
 
+  function forceTopScroll(ref?: React.RefObject<HTMLDivElement | null>) {
+    requestAnimationFrame(() => {
+      ref?.current?.scrollTo({ top: 0, behavior: "auto" });
+      document.scrollingElement?.scrollTo({ top: 0, behavior: "auto" });
+      window.scrollTo({ top: 0, behavior: "auto" });
+    });
+
+    setTimeout(() => {
+      ref?.current?.scrollTo({ top: 0, behavior: "auto" });
+      document.scrollingElement?.scrollTo({ top: 0, behavior: "auto" });
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }, 60);
+  }
+
+  useEffect(() => {
+    if (screen === "settings") forceTopScroll(settingsScrollRef);
+    if (screen === "chatSettings") forceTopScroll(chatSettingsScrollRef);
+  }, [screen]);
+
+  useEffect(() => {
+    forceTopScroll(settingsScrollRef);
+  }, [settingsSection]);
+
+  useEffect(() => {
+    forceTopScroll(chatSettingsScrollRef);
+  }, [chatSettingsSection]);
+
   useEffect(() => {
     settingsScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1147,6 +1178,33 @@ export default function Home() {
     const visible = items.slice(0, 6);
     const extra = Math.max(0, items.length - 6);
     return { visible, extra };
+  }
+
+  function openMediaViewer(
+    items: { url: string; name: string; type: string }[],
+    index = 0,
+  ) {
+    const media = items.filter((item) =>
+      item.type?.startsWith("image/") ||
+      item.type?.startsWith("video/") ||
+      item.type?.startsWith("audio/"),
+    );
+
+    if (!media.length) return;
+    setFullscreenMedia({
+      items: media,
+      index: Math.max(0, Math.min(index, media.length - 1)),
+    });
+  }
+
+  function mediaGrid(items: { url: string; name: string; type: string }[]) {
+    const media = items.filter((item) =>
+      item.type?.startsWith("image/") ||
+      item.type?.startsWith("video/"),
+    );
+    const visible = media.slice(0, 6);
+    const extra = Math.max(0, media.length - visible.length);
+    return { media, visible, extra };
   }
 
   function messageWasRead(msg: Message) {
@@ -4488,7 +4546,7 @@ export default function Home() {
       go: typeof settingsSection;
     }) => (
       <button
-        onClick={() => setSettingsSection(go)}
+        onClick={() => { setSettingsSection(go); forceTopScroll(settingsScrollRef); }}
         className="w-full rounded-[1.5rem] border border-white/10 bg-white/[.08] p-5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition hover:bg-white/[.13]"
       >
         <div className="flex items-center gap-4">
@@ -4509,7 +4567,7 @@ export default function Home() {
     const SettingsBack = ({ title }: { title: string }) => (
       <>
         <button
-          onClick={() => setSettingsSection("main")}
+          onClick={() => { setSettingsSection("main"); forceTopScroll(settingsScrollRef); }}
           className="mb-5 rounded-2xl bg-black/60 px-4 py-3 font-bold"
         >
           ← Settings
@@ -5025,18 +5083,6 @@ export default function Home() {
                 >
                   Allow Microphone
                 </button>
-                <button
-                  onClick={requestMicrophonePermission}
-                  className="rounded-2xl bg-white/10 p-4 font-black active:scale-[.98]"
-                >
-                  Microphone
-                </button>
-                <button
-                  onClick={requestMicrophonePermission}
-                  className="rounded-2xl bg-white/10 p-4 font-black active:scale-[.98]"
-                >
-                  Mic Permission
-                </button>
               </div>
               <input
                 id="settings-photo-permission"
@@ -5125,7 +5171,7 @@ export default function Home() {
       go: typeof chatSettingsSection;
     }) => (
       <button
-        onClick={() => setChatSettingsSection(go)}
+        onClick={() => { setChatSettingsSection(go); forceTopScroll(chatSettingsScrollRef); }}
         className="w-full rounded-[1.5rem] border border-white/10 bg-white/[.08] p-5 text-left shadow-xl shadow-black/20 backdrop-blur-xl transition hover:bg-white/[.13]"
       >
         <div className="flex items-center gap-4">
@@ -5146,7 +5192,7 @@ export default function Home() {
     const ChatBack = ({ title }: { title: string }) => (
       <>
         <button
-          onClick={() => setChatSettingsSection("main")}
+          onClick={() => { setChatSettingsSection("main"); forceTopScroll(chatSettingsScrollRef); }}
           className="mb-5 rounded-2xl bg-black/60 px-4 py-3 font-bold"
         >
           ← Chat Settings
@@ -5984,7 +6030,56 @@ export default function Home() {
             )}
           </div>
         </div>
+      )}      {fullscreenMedia && (
+        <div className="fixed inset-0 z-[80] bg-black text-white">
+          <div className="fixed inset-x-0 top-0 z-10 flex items-center justify-between bg-black/70 px-4 py-4 backdrop-blur-xl">
+            <div className="text-sm font-black text-white/75">
+              {fullscreenMedia.index + 1} / {fullscreenMedia.items.length}
+            </div>
+            <button
+              onClick={() => setFullscreenMedia(null)}
+              className="rounded-full bg-white/10 px-4 py-2 font-black active:scale-[.98]"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="h-dvh overflow-y-auto px-0 pb-12 pt-20">
+            <div className="mx-auto flex max-w-3xl flex-col gap-4">
+              {fullscreenMedia.items.map((item, index) => (
+                <div
+                  key={`${item.name}-${index}`}
+                  className={`flex min-h-[70dvh] items-center justify-center px-2 ${index === fullscreenMedia.index ? "scroll-mt-24" : ""}`}
+                >
+                  {item.type?.startsWith("image/") ? (
+                    <img
+                      src={item.url}
+                      alt={item.name || "Photo"}
+                      className="max-h-[86dvh] w-full object-contain"
+                      loading={index > 2 ? "lazy" : "eager"}
+                    />
+                  ) : item.type?.startsWith("video/") ? (
+                    <video
+                      src={item.url}
+                      controls
+                      playsInline
+                      className="max-h-[86dvh] w-full bg-black object-contain"
+                    />
+                  ) : item.type?.startsWith("audio/") ? (
+                    <div className="w-full rounded-[2rem] bg-white/10 p-5">
+                      <div className="mb-3 text-xs font-black uppercase tracking-[.22em] text-white/45">
+                        Voice message
+                      </div>
+                      <audio controls src={item.url} className="w-full" />
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
+
 
       <footer className="shrink-0 border-t border-white/10 bg-black/80 px-3 pb-[calc(env(safe-area-inset-bottom)+.75rem)] pt-3 backdrop-blur-2xl backdrop-saturate-150">
         <div className="mx-auto max-w-6xl">
