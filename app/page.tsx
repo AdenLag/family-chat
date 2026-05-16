@@ -3416,7 +3416,7 @@ export default function Home() {
                 )}
                 {!item.text && (
                   <div
-                    className={"pointer-events-none absolute left-6 top-5 z-0 whitespace-nowrap text-6xl opacity-80 " + storyTextDisplayClass(item.style)}
+                    className={"pointer-events-none absolute left-7 top-6 z-0 whitespace-nowrap text-6xl opacity-80 " + storyTextDisplayClass(item.style)}
                     style={storyTextDisplayStyle(item)}
                   >
                     Type here
@@ -3431,7 +3431,7 @@ export default function Home() {
                   }}
                   placeholder=""
                   rows={1}
-                  className={"relative z-10 min-h-[72px] w-[300px] resize-none border-0 bg-transparent px-2 py-1 text-center text-6xl outline-none " + storyTextDisplayClass(item.style)}
+                  className={"relative z-10 min-h-[88px] w-[330px] resize-none border-0 bg-transparent px-2 py-1 text-center text-6xl outline-none " + storyTextDisplayClass(item.style)}
                   style={{ ...storyTextDisplayStyle(item), caretColor: item.color }}
                 />
               </div>
@@ -3478,10 +3478,7 @@ export default function Home() {
                     {colorChoices.map((color) => (
                       <button
                         key={color}
-                        onClick={() => {
-                          setStoryOverlayColor(color);
-                          if (activeTextItem) updateStoryTextItem(activeTextItem.id, { color });
-                        }}
+                        onClick={() => applyStoryTextColor(color)}
                         className={"h-14 w-14 rounded-2xl border-4 shadow-lg shadow-black/40 active:scale-95 " + ((activeTextItem?.color || storyOverlayColor) === color ? "border-blue-400" : "border-white/20")}
                         style={{ background: color }}
                         title={color}
@@ -4115,8 +4112,8 @@ export default function Home() {
           <header className="sticky top-[calc(env(safe-area-inset-top)+.75rem)] z-50 mb-5 rounded-[2rem] border border-white/10 bg-white/[.08] p-5 shadow-2xl shadow-black/50 backdrop-blur-2xl backdrop-saturate-150">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <div className="text-xs font-black uppercase tracking-[.2em] text-blue-200/70">{currentFamily?.name || "Family Feud"}</div>
-                <h1 className="text-4xl font-black">Stories</h1>
+                <h1 className="text-4xl font-black">{currentFamily?.name || "Family Feud"}</h1>
+                <div className="text-xs font-black uppercase tracking-[.2em] text-blue-200/70">Stories</div>
               </div>
             </div>
           </header>
@@ -5026,6 +5023,12 @@ export default function Home() {
                   onClick={requestMicrophonePermission}
                   className="rounded-2xl bg-white/10 p-4 font-black active:scale-[.98]"
                 >
+                  Allow Microphone
+                </button>
+                <button
+                  onClick={requestMicrophonePermission}
+                  className="rounded-2xl bg-white/10 p-4 font-black active:scale-[.98]"
+                >
                   Microphone
                 </button>
                 <button
@@ -5655,6 +5658,21 @@ export default function Home() {
                 rounded="rounded-full"
               />
             )}
+            {activeChat && !activeChat.direct_key && (
+              activeChat.icon_url ? (
+                <div data-chat-header-avatar="group" className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/15 bg-black/40">
+                  <img src={activeChat.icon_url} alt={chatTitle(activeChat)} className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <div
+                  data-chat-header-avatar="group"
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-black text-white ${bubbleClass(activeChat.chat_color || "patriot")}`}
+                  style={bubbleStyle(activeChat.chat_color)}
+                >
+                  {initials(chatTitle(activeChat))}
+                </div>
+              )
+            )}
             <div className="min-w-0">
               <h1 className="truncate text-2xl font-black">
                 {chatTitle(activeChat)}
@@ -5722,8 +5740,14 @@ export default function Home() {
                   }
                 >
                   {!activeChat?.direct_key && !mine && (
-                    <div className="mb-1 text-sm font-bold opacity-70">
-                      {profileName(msg.user_id)}
+                    <div data-sender-name-row="true" className="mb-2 flex items-center gap-2 text-sm font-bold opacity-80">
+                      <Avatar
+                        id={msg.user_id}
+                        name={profileName(msg.user_id)}
+                        size="h-7 w-7"
+                        rounded="rounded-full"
+                      />
+                      <span>{profileName(msg.user_id)}</span>
                     </div>
                   )}
 
@@ -5964,6 +5988,18 @@ export default function Home() {
 
       <footer className="shrink-0 border-t border-white/10 bg-black/80 px-3 pb-[calc(env(safe-area-inset-bottom)+.75rem)] pt-3 backdrop-blur-2xl backdrop-saturate-150">
         <div className="mx-auto max-w-6xl">
+          {isRecordingVoice && (
+            <div className="mb-2 flex items-center justify-between rounded-2xl border border-red-400/30 bg-red-950/45 px-4 py-3 text-red-50 shadow-lg shadow-red-950/30 backdrop-blur-xl">
+              <div className="flex items-center gap-3 font-black">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-300 opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-red-400" />
+                </span>
+                Recording voice message
+              </div>
+              <div className="text-xs font-bold uppercase tracking-[.18em] text-red-100/70">release to attach</div>
+            </div>
+          )}
           {(pendingAttachments.length > 0 || failedDraft) && (
             <div className="mb-2 rounded-2xl border border-white/10 bg-black/60 p-3">
               {pendingAttachments.length > 0 && (
@@ -6123,15 +6159,19 @@ export default function Home() {
               type="button"
               onPointerDown={startVoiceRecording}
               onPointerUp={stopVoiceRecording}
-              onPointerCancel={cancelVoiceRecording}
+              onPointerCancel={cancelVoiceRecording || stopVoiceRecording}
               onPointerLeave={(event) => {
                 if (isRecordingVoice) stopVoiceRecording(event);
               }}
+              onClick={(event) => event.preventDefault()}
               disabled={sendingMessage}
-              className={`flex h-12 w-12 shrink-0 touch-none select-none items-center justify-center rounded-2xl border border-white/10 text-xs font-black shadow-lg shadow-black/30 active:scale-[.96] ${isRecordingVoice ? "bg-red-600 text-white animate-pulse" : "bg-white/10 text-white/80"}`}
-              title="Hold to record voice"
+              className={`relative flex h-12 w-12 shrink-0 touch-none select-none items-center justify-center rounded-2xl border border-white/10 text-2xl font-black shadow-lg transition active:scale-95 disabled:opacity-60 ${isRecordingVoice ? "bg-red-600 text-white shadow-red-950/60" : "bg-white/10 text-white hover:bg-white/15"}`}
+              title="Hold to record voice message"
             >
-              {isRecordingVoice ? "REC" : "Mic"}
+              {isRecordingVoice && (
+                <span className="absolute -inset-1 animate-ping rounded-2xl bg-red-500/35" />
+              )}
+              <span className="relative">{"\uD83C\uDF99\uFE0F"}</span>
             </button>
 
             <button
